@@ -1,0 +1,21 @@
+## requirements.txt
+text
+pandas>=1.3.0
+numpy>=1.20.0
+matplotlib>=3.4.0
+scikit-learn>=1.0.0
+optuna>=2.10.0
+joblib>=1.0.0
+tqdm>=4.60.0
+psutil>=5.8.0
+seaborn>=0.11.0
+scipy>=1.7.0
+shap>=0.40.0
+openpyxl>=3.0.0  # Required by pandas for reading .xlsx files
+torch>=1.8.0     # Required for TabPFN and GPU checks
+# Optional - Install manually if needed for specific models
+lightgbm>=3.2.0
+catboost>=1.0.0
+xgboost>=1.5.0
+tabpfn>=0.1.0
+ipython
