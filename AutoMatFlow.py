@@ -3,7 +3,7 @@
 
 # 设置LOKY_MAX_CPU_COUNT环境变量以避免CPU核心检测问题
 import os
-os.environ['LOKY_MAX_CPU_COUNT'] = '8'  # 将数字调整为你想使用的核心数
+os.environ['LOKY_MAX_CPU_COUNT'] = '12'  # 将数字调整为你想使用的核心数
 
 """
 AutoMatFlow.py
@@ -59,7 +59,7 @@ from sklearn.base import clone
 from sklearn.base import BaseEstimator, TransformerMixin
 # GPU配置
 GPU_CONFIG = {
-    "use_gpu": True,  # 是否尝试使用GPU加速, 当使用TabPFN时候建议使用 GPU显著增加速度
+    "use_gpu": False,  # 是否尝试使用GPU加速
 }
 
 # 噪声配置
@@ -4089,14 +4089,14 @@ def main():
         "9": {"name": "ElasticNet", "model": ElasticNet(random_state=get_config("random_state")),
               "param_space": {"model__alpha": (0.0001, 1.0, 'log-uniform'),
                               "model__l1_ratio": (0.1, 0.9),
-                              "model__max_iter": (1000, 5000),
+                              "model__max_iter": (5000, 20000),
                               "model__tol": (1e-5, 1e-3, 'log-uniform')}},
-        "10": {"name": "Ridge", "model": Ridge(random_state=get_config("random_state")),
+        "10": {"name": "Ridge", "model": Ridge(random_state=get_config("random_state"), max_iter=10000, tol=1e-4),
                "param_space": {"model__alpha": (0.1, 10.0, 'log-uniform'),
                                "model__solver": ["auto", "svd", "cholesky", "lsqr", "sparse_cg", "sag", "saga"]}},
         "11": {"name": "Lasso", "model": Lasso(random_state=get_config("random_state")),
                "param_space": {"model__alpha": (0.0001, 1.0, 'log-uniform'),
-                               "model__max_iter": (1000, 5000),
+                               "model__max_iter": (5000, 20000),
                                "model__tol": (1e-5, 1e-3, 'log-uniform')}},
         "12": {"name": "KNeighborsRegressor", "model": KNeighborsRegressor(),
                "param_space": {"model__n_neighbors": (3, 15),
