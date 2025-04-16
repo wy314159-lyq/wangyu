@@ -304,3 +304,98 @@ predictions = pipeline.predict(X_new)
 # probabilities = pipeline.predict_proba(X_new)
 
 print(predictions)
+```
+
+## Common Issues and Solutions
+
+When using AutoMatFlow, you might encounter some warnings or errors. Here are some common issues and their solutions:
+
+### 1. CPU Core Detection Issue
+
+**Problem**: You encounter warnings like:
+```
+Could not find the number of physical cores for the following reason:
+[WinError 2] The system cannot find the file specified.
+Returning the number of logical cores instead. You can silence this warning by setting LOKY_MAX_CPU_COUNT to the number of cores you want to use.
+```
+
+**Solution**:
+- Add the following code at the beginning of the script (AutoMatFlow.py already includes this, but you may need to adjust the number):
+  ```python
+  import os
+os.environ['LOKY_MAX_CPU_COUNT'] = '8'  # Adjust this number based on your CPU
+  ```
+- Set the number to your CPU's physical core count or slightly less to avoid system overload.
+
+### 2. Linear Model Convergence Warning
+
+**Problem**: When using ElasticNet, Lasso, or Ridge, you see warnings like:
+```
+ConvergenceWarning: Objective did not converge. You might want to increase the number of iterations, check the scale of the features or consider increasing regularisation.
+```
+
+**Solution**:
+- Modify the model configuration to increase the maximum iterations and adjust convergence tolerance:
+  ```python
+  # For ElasticNet
+"model": ElasticNet(random_state=get_config("random_state"), max_iter=10000, tol=1e-4)
+  
+  # Search space should also be adjusted
+"param_space": {"model__max_iter": (5000, 20000), "model__tol": (1e-5, 1e-3, 'log-uniform')}
+  ```
+- Consider better feature scaling or increasing regularization strength.
+- For highly correlated features, consider lowering the `correlation_threshold` in the correlation filtering step.
+
+### 3. Neural Network Warnings
+
+**Problem 1**: Batch size warnings:
+```
+Got `batch_size` less than 1 or larger than sample size. It is going to be clipped
+```
+
+**Solution**:
+- Reduce the search range for `batch_size`, e.g., from `[32, 64, 128, 256]` to `[16, 32, 64, 128]`.
+- For small datasets, avoid large batch sizes entirely.
+
+**Problem 2**: Iteration count warnings:
+```
+Stochastic Optimizer: Maximum iterations (2000) reached and the optimization hasn't converged yet.
+```
+
+**Solution**:
+- Increase the model's `max_iter` parameter, e.g., from 2000 to 5000 or 10000.
+- Increase the `n_iter_no_change` parameter, e.g., from 10 to 15 or 20.
+- Adjust the learning rate (`learning_rate_init`), trying smaller values.
+
+### 4. Optuna Categorical Distribution Warning
+
+**Problem**: During hyperparameter optimization, you encounter warnings about categorical distributions:
+```
+Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (50,) which is of type tuple.
+```
+
+**Solution**:
+- Change the neural network's `hidden_layer_sizes` parameter to string format:
+  ```python
+"model__hidden_layer_sizes": ["(50,)", "(100,)", "(50, 25)", "(100, 50)"]  # Use string format
+  ```
+- This avoids Optuna's warnings when handling tuple types as categorical values.
+
+### 5. Memory and Computational Resource Management
+
+**Problem**: Memory shortages or slow computation when processing large datasets or complex models.
+
+**Solution**:
+- Adjust the `n_jobs` parameter to a value suitable for your system (don't always use -1).
+- Reduce the value of `bayes_iter` to decrease the computational load of hyperparameter optimization.
+- For feature selection, consider using RFE or GA instead of exhaustive search.
+- Reduce the sample size for SHAP analysis (`shap_sample_size`).
+- If applicable, enable GPU acceleration (`use_gpu: True`), but ensure all dependencies are properly installed.
+- Consider batch processing data or using incremental learning models (for very large datasets).
+
+### 6. Other Common Issues
+
+- **Path problems**: Ensure data file paths are correct, especially when switching between different operating systems.
+- **Dependency conflicts**: Use virtual environments and install exact versions specified in `requirements.txt`.
+- **Model incompatibility**: Some model combinations may produce errors (such as certain preprocessors with specific models). When encountering such issues, try different model or preprocessing combinations.
+- **Unstable results**: Set a consistent `random_state` to ensure reproducible results, or consider increasing the number of cross-validation folds.
