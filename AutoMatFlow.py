@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# 设置LOKY_MAX_CPU_COUNT环境变量以避免CPU核心检测问题
+import os
+os.environ['LOKY_MAX_CPU_COUNT'] = '8'  # 将数字调整为你想使用的核心数
+
 """
 AutoMatFlow.py
 --------------------------
-这个脚本是特征筛选脚本的改进版本，实现了多种特征选择和评估方法。
 
-修复记录:
-- 2023-XX-XX: 修复了AttributeError: 'numpy.ndarray' object has no attribute 'iloc'错误
-  - 在feature_importance_filter函数中，当y_train是通过LabelEncoder转换后的NumPy数组时，
-    将y_train.iloc[train_idx]改为y_train[train_idx]，以正确处理NumPy数组索引
-  - 针对交叉验证拆分中的y值统一使用兼容NumPy数组的索引方式
 
 GPU加速说明:
 - 本脚本支持使用GPU加速模型训练，但需要满足以下条件：
@@ -61,7 +59,7 @@ from sklearn.base import clone
 from sklearn.base import BaseEstimator, TransformerMixin
 # GPU配置
 GPU_CONFIG = {
-    "use_gpu": False,  # 是否尝试使用GPU加速
+    "use_gpu": True,  # 是否尝试使用GPU加速, 当使用TabPFN时候建议使用 GPU显著增加速度
 }
 
 # 噪声配置
@@ -103,7 +101,7 @@ MODEL_CONFIG = {
 
 # 特征选择配置
 FEATURE_CONFIG = {
-    "importance_threshold": 0.2,  # 特征重要性过滤阈值
+    "importance_threshold": 0.05,  # 特征重要性过滤阈值，保留前百分之20%的特征
     "correlation_threshold": 0.95,  # 特征相关性过滤阈值
 }
 
@@ -140,7 +138,7 @@ config = {
     # 可选项：填写用数字表示类别的列名列表。
     # 未在此列表中的列将被自动视为数值列（进行填充和缩放）。
     # 如果列表为空或不提供，所有列都按数值列处理。
-    "categorical_num_cols": [],  # 例如 ["产品代码", "地区ID"]
+    "categorical_num_cols": [],  # 例如 ["是否热处理"]
     # 遗传算法配置
     "genetic_population_size": 10,  # 种群大小
     "genetic_generations": 2,  # 最大代数
